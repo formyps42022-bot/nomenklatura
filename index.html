@@ -234,10 +234,143 @@
     .leaflet-tooltip.custom-tooltip:before { display: none; }
 
     @media (max-width: 980px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar { min-height: 48vh; }
-      .map-wrap, #map { min-height: 62vh; }
-      .map-overlay { max-width: calc(100% - 32px); }
+      .app {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 10px;
+      }
+
+      .sidebar {
+        order: 2;
+        min-height: auto;
+        border-radius: 22px;
+      }
+
+      .sidebar-header {
+        padding: 16px 16px 12px;
+      }
+
+      h1 {
+        font-size: 1.1rem;
+      }
+
+      .controls {
+        padding: 12px 14px 10px;
+        gap: 10px;
+      }
+
+      .theme-buttons,
+      .chip-row {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+      }
+
+      .theme-btn,
+      .chip {
+        white-space: nowrap;
+        flex: 0 0 auto;
+        padding: 10px 12px;
+      }
+
+      .search-wrap input {
+        font-size: 16px;
+      }
+
+      .list {
+        max-height: 38vh;
+        padding: 10px;
+      }
+
+      .item {
+        padding: 12px;
+      }
+
+      .map-wrap {
+        order: 1;
+        min-height: 58vh;
+        border-radius: 22px;
+      }
+
+      #map {
+        min-height: 58vh;
+      }
+
+      .map-overlay {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        max-width: none;
+        padding: 10px 12px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      body {
+        background: linear-gradient(180deg, #eaf4ff 0%, #f8fbff 100%);
+      }
+
+      .app {
+        padding: 0;
+        gap: 0;
+      }
+
+      .map-wrap {
+        border-radius: 0 0 24px 24px;
+        min-height: 52vh;
+        border-left: 0;
+        border-right: 0;
+      }
+
+      #map {
+        min-height: 52vh;
+      }
+
+      .sidebar {
+        margin: 10px;
+        margin-top: 12px;
+        border-radius: 22px;
+      }
+
+      .sidebar-header {
+        padding: 14px 14px 10px;
+      }
+
+      .subtitle,
+      .stats,
+      .item-meta,
+      .map-overlay p {
+        font-size: .82rem;
+      }
+
+      .controls {
+        padding: 10px 12px;
+      }
+
+      .search-wrap input {
+        padding: 11px 12px 11px 38px;
+        border-radius: 14px;
+      }
+
+      .search-icon {
+        left: 12px;
+      }
+
+      .list {
+        max-height: 34vh;
+        gap: 8px;
+      }
+
+      .item-title {
+        font-size: .93rem;
+      }
+
+      .theme-btn,
+      .chip {
+        font-size: .82rem;
+        padding: 9px 11px;
+      }
     }
   </style>
 </head>
