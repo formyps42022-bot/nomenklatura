@@ -3,46 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Географическая номенклатура Европейского юга</title>
+  <title>Интерактивная карта номенклатуры регионов России</title>
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     :root {
-      --bg: #0b1220;
+      --bg1: #dbeafe;
+      --bg2: #f0f9ff;
       --panel: rgba(255,255,255,0.92);
-      --panel-2: rgba(248,250,252,0.95);
-      --text: #14213d;
-      --muted: #5b6475;
+      --panel-2: rgba(248,250,252,0.96);
+      --text: #0f172a;
+      --muted: #64748b;
       --accent: #2563eb;
-      --accent-2: #0ea5e9;
+      --accent-2: #06b6d4;
+      --accent-3: #8b5cf6;
       --border: rgba(15, 23, 42, 0.08);
-      --shadow: 0 10px 30px rgba(2, 8, 23, 0.18);
+      --shadow: 0 14px 40px rgba(2, 8, 23, 0.15);
+      --radius: 24px;
     }
 
     * { box-sizing: border-box; }
 
+    html, body { height: 100%; }
+
     body {
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(37,99,235,.20), transparent 35%),
-        radial-gradient(circle at top right, rgba(14,165,233,.18), transparent 28%),
-        linear-gradient(180deg, #dbeafe 0%, #e0f2fe 40%, #f8fafc 100%);
       color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.18), transparent 34%),
+        radial-gradient(circle at top right, rgba(6,182,212,.14), transparent 30%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 44%, #f8fafc 100%);
     }
 
     .app {
       display: grid;
-      grid-template-columns: 360px 1fr;
-      min-height: 100vh;
+      grid-template-columns: 390px 1fr;
       gap: 16px;
+      min-height: 100vh;
       padding: 16px;
     }
 
     .sidebar {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
@@ -51,21 +56,21 @@
     }
 
     .sidebar-header {
-      padding: 22px 20px 16px;
+      padding: 22px 20px 14px;
+      background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(139,92,246,.08));
       border-bottom: 1px solid rgba(15,23,42,.06);
-      background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(14,165,233,.08));
     }
 
     h1 {
       margin: 0 0 8px;
-      font-size: 1.28rem;
+      font-size: 1.3rem;
       line-height: 1.2;
     }
 
     .subtitle {
       margin: 0;
       color: var(--muted);
-      font-size: 0.93rem;
+      font-size: .93rem;
       line-height: 1.45;
     }
 
@@ -77,16 +82,53 @@
       border-bottom: 1px solid rgba(15,23,42,.06);
     }
 
+    .theme-buttons,
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .theme-btn,
+    .chip {
+      border: 1px solid rgba(37,99,235,.12);
+      background: white;
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: .86rem;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .theme-btn:hover,
+    .theme-btn.active,
+    .chip:hover,
+    .chip.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      border-color: transparent;
+      transform: translateY(-1px);
+    }
+
     .search-wrap {
       position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: .55;
     }
 
     .search-wrap input {
       width: 100%;
       border: 1px solid rgba(148,163,184,.35);
       border-radius: 16px;
-      padding: 12px 14px 12px 42px;
-      font-size: 0.98rem;
+      padding: 12px 14px 12px 40px;
+      font-size: .98rem;
       outline: none;
       background: white;
       color: var(--text);
@@ -98,49 +140,14 @@
       box-shadow: 0 0 0 4px rgba(37,99,235,.10);
     }
 
-    .search-icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: .55;
-      font-size: 1rem;
-    }
-
-    .chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .chip {
-      border: 1px solid rgba(37,99,235,.12);
-      background: white;
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: .85rem;
-      cursor: pointer;
-      user-select: none;
-      transition: .18s ease;
-    }
-
-    .chip:hover,
-    .chip.active {
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      color: white;
-      border-color: transparent;
-      transform: translateY(-1px);
-    }
-
     .stats {
-      font-size: .9rem;
       color: var(--muted);
+      font-size: .9rem;
     }
 
     .list {
-      overflow: auto;
       padding: 12px;
+      overflow: auto;
       display: grid;
       gap: 10px;
     }
@@ -151,13 +158,13 @@
       border-radius: 18px;
       padding: 12px 14px;
       cursor: pointer;
+      box-shadow: 0 6px 18px rgba(15,23,42,.04);
       transition: .18s ease;
-      box-shadow: 0 4px 16px rgba(15,23,42,.04);
     }
 
     .item:hover {
       transform: translateY(-1px);
-      box-shadow: 0 8px 22px rgba(15,23,42,.08);
+      box-shadow: 0 10px 22px rgba(15,23,42,.08);
       border-color: rgba(37,99,235,.18);
     }
 
@@ -170,7 +177,7 @@
     .item-meta {
       color: var(--muted);
       font-size: .86rem;
-      line-height: 1.4;
+      line-height: 1.42;
     }
 
     .map-wrap {
@@ -184,8 +191,8 @@
 
     #map {
       width: 100%;
-      height: 100%;
       min-height: calc(100vh - 32px);
+      height: 100%;
     }
 
     .map-overlay {
@@ -193,30 +200,30 @@
       right: 16px;
       top: 16px;
       z-index: 500;
+      max-width: 360px;
       background: rgba(255,255,255,.92);
       border: 1px solid rgba(15,23,42,.06);
       border-radius: 18px;
       padding: 12px 14px;
-      max-width: 330px;
       box-shadow: 0 10px 24px rgba(15,23,42,.12);
       backdrop-filter: blur(8px);
     }
 
     .map-overlay h2 {
-      font-size: 0.98rem;
       margin: 0 0 6px;
+      font-size: .98rem;
     }
 
     .map-overlay p {
       margin: 0;
       font-size: .86rem;
-      color: var(--muted);
       line-height: 1.45;
+      color: var(--muted);
     }
 
     .leaflet-tooltip.custom-tooltip {
-      background: rgba(15, 23, 42, 0.92);
-      color: white;
+      background: rgba(15,23,42,.94);
+      color: #fff;
       border: none;
       border-radius: 12px;
       box-shadow: 0 8px 24px rgba(0,0,0,.18);
@@ -227,16 +234,10 @@
     .leaflet-tooltip.custom-tooltip:before { display: none; }
 
     @media (max-width: 980px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-      .sidebar {
-        min-height: 44vh;
-      }
-      .map-wrap,
-      #map {
-        min-height: 62vh;
-      }
+      .app { grid-template-columns: 1fr; }
+      .sidebar { min-height: 48vh; }
+      .map-wrap, #map { min-height: 62vh; }
+      .map-overlay { max-width: calc(100% - 32px); }
     }
   </style>
 </head>
@@ -244,15 +245,21 @@
   <div class="app">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h1>Европейский юг — интерактивная карта</h1>
-        <p class="subtitle">Наведи на объект на карте, чтобы увидеть название. Можно искать географические объекты, регионы и административные центры.</p>
+        <h1>Интерактивная карта номенклатуры</h1>
+        <p class="subtitle">Выбери тему кнопкой, ищи объекты по названию и наводи на точки на карте, чтобы увидеть подписи.</p>
       </div>
 
       <div class="controls">
+        <div>
+          <div style="font-size:.86rem;color:var(--muted);margin-bottom:8px;">Тема номенклатуры</div>
+          <div class="theme-buttons" id="themeButtons"></div>
+        </div>
+
         <div class="search-wrap">
           <span class="search-icon">🔎</span>
-          <input id="searchInput" type="text" placeholder="Поиск: Эльбрус, Кубань, Майкоп..." />
+          <input id="searchInput" type="text" placeholder="Поиск: Эльбрус, Сыктывкар, Ладожское..." />
         </div>
+
         <div class="chip-row" id="categoryChips"></div>
         <div class="stats" id="stats"></div>
       </div>
@@ -263,82 +270,141 @@
     <main class="map-wrap">
       <div id="map"></div>
       <div class="map-overlay">
-        <h2>Что внутри</h2>
-        <p>На карте отмечены моря, залив, пролив, полуостров, равнины, горы, вершины, реки, озёра, канал и регионы с административными центрами из вашего списка. Координаты нанесены ориентировочно для учебной визуализации.</p>
+        <h2 id="overlayTitle">Европейский юг</h2>
+        <p id="overlayText">Карта показывает объекты выбранной темы. Координаты нанесены ориентировочно для учебной интерактивной визуализации.</p>
       </div>
     </main>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
-    const points = [
-      { name: 'Азовское море', category: 'Моря', type: 'area', lat: 46.1, lng: 36.8, description: 'Море' },
-      { name: 'Чёрное море', category: 'Моря', type: 'area', lat: 43.9, lng: 36.5, description: 'Море' },
-      { name: 'Таганрогский залив', category: 'Заливы', type: 'point', lat: 47.15, lng: 38.1, description: 'Залив' },
-      { name: 'Керченский пролив', category: 'Проливы', type: 'point', lat: 45.29, lng: 36.54, description: 'Пролив' },
-      { name: 'Таманский полуостров', category: 'Полуострова', type: 'point', lat: 45.2, lng: 36.9, description: 'Полуостров' },
-      { name: 'Кумо-Манычская впадина', category: 'Равнины', type: 'point', lat: 46.5, lng: 43.2, description: 'Впадина' },
-      { name: 'Прикубанская низменность', category: 'Равнины', type: 'point', lat: 45.2, lng: 39.3, description: 'Низменность' },
-      { name: 'Ставропольская возвышенность', category: 'Равнины', type: 'point', lat: 45.0, lng: 42.0, description: 'Возвышенность' },
-      { name: 'Терско-Кумская низменность', category: 'Равнины', type: 'point', lat: 44.5, lng: 45.3, description: 'Низменность' },
-      { name: 'Большой Кавказ', category: 'Горы', type: 'point', lat: 43.4, lng: 44.5, description: 'Горная система' },
-      { name: 'Казбек', category: 'Вершины', type: 'point', lat: 42.70, lng: 44.52, description: 'Вершина' },
-      { name: 'Эльбрус', category: 'Вершины', type: 'point', lat: 43.35, lng: 42.44, description: 'Вершина' },
-      { name: 'Дон', category: 'Реки', type: 'point', lat: 47.4, lng: 39.8, description: 'Река' },
-      { name: 'Кубань', category: 'Реки', type: 'point', lat: 45.05, lng: 38.95, description: 'Река' },
-      { name: 'Кума', category: 'Реки', type: 'point', lat: 44.05, lng: 45.03, description: 'Река' },
-      { name: 'Терек', category: 'Реки', type: 'point', lat: 43.48, lng: 44.75, description: 'Река' },
-      { name: 'Каспийское море', category: 'Озёра', type: 'point', lat: 42.0, lng: 48.0, description: 'Озеро/море' },
-      { name: 'Маныч-Гудило', category: 'Озёра', type: 'point', lat: 46.18, lng: 42.7, description: 'Озеро' },
-      { name: 'Ставропольский канал', category: 'Каналы', type: 'point', lat: 44.7, lng: 42.0, description: 'Канал' },
-
-      { name: 'Республика Адыгея', category: 'Регионы', type: 'region', lat: 44.61, lng: 40.11, capital: 'Майкоп', description: 'Республика • адм. центр: Майкоп' },
-      { name: 'Республика Дагестан', category: 'Регионы', type: 'region', lat: 42.98, lng: 47.50, capital: 'Махачкала', description: 'Республика • адм. центр: Махачкала' },
-      { name: 'Донецкая Народная Республика', category: 'Регионы', type: 'region', lat: 48.00, lng: 37.80, capital: 'Донецк', description: 'Регион • адм. центр: Донецк' },
-      { name: 'Республика Ингушетия', category: 'Регионы', type: 'region', lat: 43.17, lng: 44.81, capital: 'Магас', description: 'Республика • адм. центр: Магас' },
-      { name: 'Кабардино-Балкарская Республика', category: 'Регионы', type: 'region', lat: 43.49, lng: 43.61, capital: 'Нальчик', description: 'Республика • адм. центр: Нальчик' },
-      { name: 'Карачаево-Черкесская Республика', category: 'Регионы', type: 'region', lat: 44.23, lng: 42.05, capital: 'Черкесск', description: 'Республика • адм. центр: Черкесск' },
-      { name: 'Республика Крым', category: 'Регионы', type: 'region', lat: 44.95, lng: 34.10, capital: 'Симферополь', description: 'Республика • адм. центр: Симферополь' },
-      { name: 'Луганская Народная Республика', category: 'Регионы', type: 'region', lat: 48.57, lng: 39.33, capital: 'Луганск', description: 'Регион • адм. центр: Луганск' },
-      { name: 'Республика Северная Осетия — Алания', category: 'Регионы', type: 'region', lat: 43.02, lng: 44.68, capital: 'Владикавказ', description: 'Республика • адм. центр: Владикавказ' },
-      { name: 'Чеченская Республика', category: 'Регионы', type: 'region', lat: 43.32, lng: 45.69, capital: 'Грозный', description: 'Республика • адм. центр: Грозный' },
-      { name: 'Краснодарский край', category: 'Регионы', type: 'region', lat: 45.04, lng: 38.98, capital: 'Краснодар', description: 'Край • адм. центр: Краснодар' },
-      { name: 'Ставропольский край', category: 'Регионы', type: 'region', lat: 45.04, lng: 41.97, capital: 'Ставрополь', description: 'Край • адм. центр: Ставрополь' },
-      { name: 'Запорожская область', category: 'Регионы', type: 'region', lat: 46.84, lng: 35.37, capital: 'Мелитополь', description: 'Область • адм. центр: Мелитополь' },
-      { name: 'Ростовская область', category: 'Регионы', type: 'region', lat: 47.23, lng: 39.72, capital: 'Ростов-на-Дону', description: 'Область • адм. центр: Ростов-на-Дону' },
-      { name: 'Херсонская область', category: 'Регионы', type: 'region', lat: 46.64, lng: 32.62, capital: 'Херсон', description: 'Область • адм. центр: Херсон' },
-      { name: 'Севастополь', category: 'Регионы', type: 'region', lat: 44.62, lng: 33.53, capital: 'Севастополь', description: 'Город федерального значения' },
-
-      { name: 'Майкоп', category: 'Административные центры', type: 'capital', lat: 44.61, lng: 40.11, description: 'Административный центр Республики Адыгея' },
-      { name: 'Махачкала', category: 'Административные центры', type: 'capital', lat: 42.98, lng: 47.50, description: 'Административный центр Республики Дагестан' },
-      { name: 'Донецк', category: 'Административные центры', type: 'capital', lat: 48.00, lng: 37.80, description: 'Административный центр региона' },
-      { name: 'Магас', category: 'Административные центры', type: 'capital', lat: 43.17, lng: 44.81, description: 'Административный центр Республики Ингушетия' },
-      { name: 'Нальчик', category: 'Административные центры', type: 'capital', lat: 43.49, lng: 43.61, description: 'Административный центр Кабардино-Балкарской Республики' },
-      { name: 'Черкесск', category: 'Административные центры', type: 'capital', lat: 44.23, lng: 42.05, description: 'Административный центр Карачаево-Черкесской Республики' },
-      { name: 'Симферополь', category: 'Административные центры', type: 'capital', lat: 44.95, lng: 34.10, description: 'Административный центр Республики Крым' },
-      { name: 'Луганск', category: 'Административные центры', type: 'capital', lat: 48.57, lng: 39.33, description: 'Административный центр региона' },
-      { name: 'Владикавказ', category: 'Административные центры', type: 'capital', lat: 43.02, lng: 44.68, description: 'Административный центр Республики Северная Осетия — Алания' },
-      { name: 'Грозный', category: 'Административные центры', type: 'capital', lat: 43.32, lng: 45.69, description: 'Административный центр Чеченской Республики' },
-      { name: 'Краснодар', category: 'Административные центры', type: 'capital', lat: 45.04, lng: 38.98, description: 'Административный центр Краснодарского края' },
-      { name: 'Ставрополь', category: 'Административные центры', type: 'capital', lat: 45.04, lng: 41.97, description: 'Административный центр Ставропольского края' },
-      { name: 'Мелитополь', category: 'Административные центры', type: 'capital', lat: 46.84, lng: 35.37, description: 'Административный центр Запорожской области' },
-      { name: 'Ростов-на-Дону', category: 'Административные центры', type: 'capital', lat: 47.23, lng: 39.72, description: 'Административный центр Ростовской области' },
-      { name: 'Херсон', category: 'Административные центры', type: 'capital', lat: 46.64, lng: 32.62, description: 'Административный центр Херсонской области' }
-    ];
-
-    const map = L.map('map', { zoomControl: true }).setView([45.6, 40.8], 5);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(map);
+    const datasets = {
+      "Европейский юг": {
+        center: [45.6, 40.8],
+        zoom: 5,
+        description: "Моря, равнины, горы, вершины, реки, регионы и административные центры Европейского юга.",
+        points: [
+          { name: 'Азовское море', category: 'Моря', lat: 46.1, lng: 36.8, description: 'Море' },
+          { name: 'Чёрное море', category: 'Моря', lat: 43.9, lng: 36.5, description: 'Море' },
+          { name: 'Таганрогский залив', category: 'Заливы', lat: 47.15, lng: 38.1, description: 'Залив' },
+          { name: 'Керченский пролив', category: 'Проливы', lat: 45.29, lng: 36.54, description: 'Пролив' },
+          { name: 'Таманский полуостров', category: 'Полуострова', lat: 45.2, lng: 36.9, description: 'Полуостров' },
+          { name: 'Кумо-Манычская впадина', category: 'Равнины', lat: 46.5, lng: 43.2, description: 'Впадина' },
+          { name: 'Прикубанская низменность', category: 'Равнины', lat: 45.2, lng: 39.3, description: 'Низменность' },
+          { name: 'Ставропольская возвышенность', category: 'Равнины', lat: 45.0, lng: 42.0, description: 'Возвышенность' },
+          { name: 'Терско-Кумская низменность', category: 'Равнины', lat: 44.5, lng: 45.3, description: 'Низменность' },
+          { name: 'Большой Кавказ', category: 'Горы', lat: 43.4, lng: 44.5, description: 'Горная система' },
+          { name: 'Казбек', category: 'Вершины', lat: 42.70, lng: 44.52, description: 'Вершина' },
+          { name: 'Эльбрус', category: 'Вершины', lat: 43.35, lng: 42.44, description: 'Вершина' },
+          { name: 'Дон', category: 'Реки', lat: 47.4, lng: 39.8, description: 'Река' },
+          { name: 'Кубань', category: 'Реки', lat: 45.05, lng: 38.95, description: 'Река' },
+          { name: 'Кума', category: 'Реки', lat: 44.05, lng: 45.03, description: 'Река' },
+          { name: 'Терек', category: 'Реки', lat: 43.48, lng: 44.75, description: 'Река' },
+          { name: 'Каспийское море', category: 'Озёра', lat: 42.0, lng: 48.0, description: 'Озеро/море' },
+          { name: 'Маныч-Гудило', category: 'Озёра', lat: 46.18, lng: 42.7, description: 'Озеро' },
+          { name: 'Ставропольский канал', category: 'Каналы', lat: 44.7, lng: 42.0, description: 'Канал' },
+          { name: 'Республика Адыгея', category: 'Регионы', lat: 44.61, lng: 40.11, capital: 'Майкоп', description: 'Республика • адм. центр: Майкоп' },
+          { name: 'Республика Дагестан', category: 'Регионы', lat: 42.98, lng: 47.50, capital: 'Махачкала', description: 'Республика • адм. центр: Махачкала' },
+          { name: 'Донецкая Народная Республика', category: 'Регионы', lat: 48.00, lng: 37.80, capital: 'Донецк', description: 'Регион • адм. центр: Донецк' },
+          { name: 'Республика Ингушетия', category: 'Регионы', lat: 43.17, lng: 44.81, capital: 'Магас', description: 'Республика • адм. центр: Магас' },
+          { name: 'Кабардино-Балкарская Республика', category: 'Регионы', lat: 43.49, lng: 43.61, capital: 'Нальчик', description: 'Республика • адм. центр: Нальчик' },
+          { name: 'Карачаево-Черкесская Республика', category: 'Регионы', lat: 44.23, lng: 42.05, capital: 'Черкесск', description: 'Республика • адм. центр: Черкесск' },
+          { name: 'Республика Крым', category: 'Регионы', lat: 44.95, lng: 34.10, capital: 'Симферополь', description: 'Республика • адм. центр: Симферополь' },
+          { name: 'Луганская Народная Республика', category: 'Регионы', lat: 48.57, lng: 39.33, capital: 'Луганск', description: 'Регион • адм. центр: Луганск' },
+          { name: 'Республика Северная Осетия — Алания', category: 'Регионы', lat: 43.02, lng: 44.68, capital: 'Владикавказ', description: 'Республика • адм. центр: Владикавказ' },
+          { name: 'Чеченская Республика', category: 'Регионы', lat: 43.32, lng: 45.69, capital: 'Грозный', description: 'Республика • адм. центр: Грозный' },
+          { name: 'Краснодарский край', category: 'Регионы', lat: 45.04, lng: 38.98, capital: 'Краснодар', description: 'Край • адм. центр: Краснодар' },
+          { name: 'Ставропольский край', category: 'Регионы', lat: 45.04, lng: 41.97, capital: 'Ставрополь', description: 'Край • адм. центр: Ставрополь' },
+          { name: 'Запорожская область', category: 'Регионы', lat: 46.84, lng: 35.37, capital: 'Мелитополь', description: 'Область • адм. центр: Мелитополь' },
+          { name: 'Ростовская область', category: 'Регионы', lat: 47.23, lng: 39.72, capital: 'Ростов-на-Дону', description: 'Область • адм. центр: Ростов-на-Дону' },
+          { name: 'Херсонская область', category: 'Регионы', lat: 46.64, lng: 32.62, capital: 'Херсон', description: 'Область • адм. центр: Херсон' },
+          { name: 'Севастополь', category: 'Регионы', lat: 44.62, lng: 33.53, capital: 'Севастополь', description: 'Город федерального значения' },
+          { name: 'Майкоп', category: 'Административные центры', lat: 44.61, lng: 40.11, description: 'Административный центр Республики Адыгея' },
+          { name: 'Махачкала', category: 'Административные центры', lat: 42.98, lng: 47.50, description: 'Административный центр Республики Дагестан' },
+          { name: 'Донецк', category: 'Административные центры', lat: 48.00, lng: 37.80, description: 'Административный центр региона' },
+          { name: 'Магас', category: 'Административные центры', lat: 43.17, lng: 44.81, description: 'Административный центр Республики Ингушетия' },
+          { name: 'Нальчик', category: 'Административные центры', lat: 43.49, lng: 43.61, description: 'Административный центр Кабардино-Балкарской Республики' },
+          { name: 'Черкесск', category: 'Административные центры', lat: 44.23, lng: 42.05, description: 'Административный центр Карачаево-Черкесской Республики' },
+          { name: 'Симферополь', category: 'Административные центры', lat: 44.95, lng: 34.10, description: 'Административный центр Республики Крым' },
+          { name: 'Луганск', category: 'Административные центры', lat: 48.57, lng: 39.33, description: 'Административный центр региона' },
+          { name: 'Владикавказ', category: 'Административные центры', lat: 43.02, lng: 44.68, description: 'Административный центр Республики Северная Осетия — Алания' },
+          { name: 'Грозный', category: 'Административные центры', lat: 43.32, lng: 45.69, description: 'Административный центр Чеченской Республики' },
+          { name: 'Краснодар', category: 'Административные центры', lat: 45.04, lng: 38.98, description: 'Административный центр Краснодарского края' },
+          { name: 'Ставрополь', category: 'Административные центры', lat: 45.04, lng: 41.97, description: 'Административный центр Ставропольского края' },
+          { name: 'Мелитополь', category: 'Административные центры', lat: 46.84, lng: 35.37, description: 'Административный центр Запорожской области' },
+          { name: 'Ростов-на-Дону', category: 'Административные центры', lat: 47.23, lng: 39.72, description: 'Административный центр Ростовской области' },
+          { name: 'Херсон', category: 'Административные центры', lat: 46.64, lng: 32.62, description: 'Административный центр Херсонской области' }
+        ]
+      },
+      "Европейский Север": {
+        center: [64.0, 42.0],
+        zoom: 5,
+        description: "Номенклатура Европейского Севера: моря, заливы, полуострова, острова, возвышенности, горы, реки, озёра и состав района.",
+        points: [
+          { name: 'Баренцево море', category: 'Моря', lat: 69.0, lng: 40.0, description: 'Море' },
+          { name: 'Белое море', category: 'Моря', lat: 65.5, lng: 37.5, description: 'Море' },
+          { name: 'Кандалакшский залив', category: 'Заливы', lat: 67.1, lng: 32.7, description: 'Залив' },
+          { name: 'Онежская губа', category: 'Заливы', lat: 64.7, lng: 36.8, description: 'Залив' },
+          { name: 'Рыбачий полуостров', category: 'Полуострова', lat: 69.8, lng: 31.9, description: 'Полуостров' },
+          { name: 'Полуостров Канин', category: 'Полуострова', lat: 68.6, lng: 44.7, description: 'Полуостров' },
+          { name: 'Кольский полуостров', category: 'Полуострова', lat: 67.5, lng: 36.0, description: 'Полуостров' },
+          { name: 'Соловецкие острова', category: 'Острова', lat: 65.03, lng: 35.71, description: 'Острова' },
+          { name: 'Кижи', category: 'Острова', lat: 62.07, lng: 35.23, description: 'Остров' },
+          { name: 'Валаам', category: 'Острова', lat: 61.39, lng: 30.95, description: 'Остров' },
+          { name: 'Колгуев', category: 'Острова', lat: 69.1, lng: 49.1, description: 'Остров' },
+          { name: 'Вайгач', category: 'Острова', lat: 70.1, lng: 59.0, description: 'Остров' },
+          { name: 'Тиманский кряж', category: 'Возвышенности', lat: 65.1, lng: 50.4, description: 'Возвышенность' },
+          { name: 'Северные Увалы', category: 'Возвышенности', lat: 60.7, lng: 45.2, description: 'Возвышенность' },
+          { name: 'Хибины', category: 'Горы', lat: 67.7, lng: 33.7, description: 'Горы' },
+          { name: 'Северная Двина', category: 'Реки', lat: 64.54, lng: 40.53, description: 'Река' },
+          { name: 'Печора', category: 'Реки', lat: 65.99, lng: 57.53, description: 'Река' },
+          { name: 'Онега', category: 'Реки', lat: 63.9, lng: 38.1, description: 'Река' },
+          { name: 'Мезень', category: 'Реки', lat: 65.85, lng: 44.24, description: 'Река' },
+          { name: 'Имандра', category: 'Озёра', lat: 67.65, lng: 33.1, description: 'Озеро' },
+          { name: 'Беломоро-Балтийский канал', category: 'Каналы', lat: 63.9, lng: 34.5, description: 'Канал' },
+          { name: 'Мурманская область', category: 'Регионы', lat: 68.97, lng: 33.08, description: 'Область' },
+          { name: 'Республика Карелия', category: 'Регионы', lat: 61.79, lng: 34.36, capital: 'Петрозаводск', description: 'Республика • адм. центр: Петрозаводск' },
+          { name: 'Архангельская область', category: 'Регионы', lat: 64.54, lng: 40.53, description: 'Область' },
+          { name: 'Вологодская область', category: 'Регионы', lat: 59.22, lng: 39.89, description: 'Область' },
+          { name: 'Республика Коми', category: 'Регионы', lat: 61.67, lng: 50.83, capital: 'Сыктывкар', description: 'Республика • адм. центр: Сыктывкар' },
+          { name: 'Ненецкий автономный округ', category: 'Регионы', lat: 67.64, lng: 53.01, capital: 'Нарьян-Мар', description: 'АО • адм. центр: Нарьян-Мар' },
+          { name: 'Петрозаводск', category: 'Административные центры', lat: 61.79, lng: 34.36, description: 'Административный центр Республики Карелия' },
+          { name: 'Сыктывкар', category: 'Административные центры', lat: 61.67, lng: 50.83, description: 'Административный центр Республики Коми' },
+          { name: 'Нарьян-Мар', category: 'Административные центры', lat: 67.64, lng: 53.01, description: 'Административный центр Ненецкого АО' }
+        ]
+      },
+      "Северо-Запад": {
+        center: [58.2, 30.0],
+        zoom: 6,
+        description: "Номенклатура Северо-Запада: море, залив, реки, озёра и состав района.",
+        points: [
+          { name: 'Балтийское море', category: 'Моря', lat: 57.8, lng: 20.5, description: 'Море' },
+          { name: 'Финский залив', category: 'Заливы', lat: 59.8, lng: 28.8, description: 'Залив' },
+          { name: 'Нева', category: 'Реки', lat: 59.93, lng: 30.32, description: 'Река' },
+          { name: 'Волхов', category: 'Реки', lat: 59.22, lng: 32.29, description: 'Река' },
+          { name: 'Ладожское озеро', category: 'Озёра', lat: 61.0, lng: 31.5, description: 'Озеро' },
+          { name: 'Онежское озеро', category: 'Озёра', lat: 61.8, lng: 35.5, description: 'Озеро' },
+          { name: 'Чудское озеро', category: 'Озёра', lat: 58.6, lng: 27.5, description: 'Озеро' },
+          { name: 'Псковское озеро', category: 'Озёра', lat: 57.8, lng: 27.9, description: 'Озеро' },
+          { name: 'Ильмень', category: 'Озёра', lat: 58.3, lng: 31.3, description: 'Озеро' },
+          { name: 'Селигер', category: 'Озёра', lat: 57.2, lng: 33.1, description: 'Озеро' },
+          { name: 'Ленинградская область', category: 'Регионы', lat: 59.9, lng: 30.7, description: 'Область' },
+          { name: 'Санкт-Петербург', category: 'Регионы', lat: 59.94, lng: 30.31, description: 'Город федерального значения' },
+          { name: 'Новгородская область', category: 'Регионы', lat: 58.52, lng: 31.27, description: 'Область' },
+          { name: 'Псковская область', category: 'Регионы', lat: 57.82, lng: 28.33, description: 'Область' },
+          { name: 'Калининградская область', category: 'Регионы', lat: 54.71, lng: 20.51, description: 'Область' }
+        ]
+      }
+    };
 
     const palette = {
       'Моря': '#2563eb',
-      'Заливы': '#0ea5e9',
-      'Проливы': '#06b6d4',
+      'Заливы': '#06b6d4',
+      'Проливы': '#0ea5e9',
       'Полуострова': '#14b8a6',
+      'Острова': '#22c55e',
       'Равнины': '#84cc16',
+      'Возвышенности': '#65a30d',
       'Горы': '#f59e0b',
       'Вершины': '#ef4444',
       'Реки': '#3b82f6',
@@ -347,6 +413,24 @@
       'Регионы': '#8b5cf6',
       'Административные центры': '#ec4899'
     };
+
+    const map = L.map('map', { zoomControl: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const markerLayer = L.layerGroup().addTo(map);
+    const themeButtons = document.getElementById('themeButtons');
+    const categoryChips = document.getElementById('categoryChips');
+    const resultsList = document.getElementById('resultsList');
+    const stats = document.getElementById('stats');
+    const searchInput = document.getElementById('searchInput');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+
+    let activeTheme = 'Европейский юг';
+    let activeCategory = 'Все';
 
     function markerStyle(category) {
       return {
@@ -359,37 +443,10 @@
       };
     }
 
-    let activeCategory = 'Все';
-    const markerLayer = L.layerGroup().addTo(map);
-    const bounds = L.latLngBounds([]);
-
-    const categories = ['Все', ...new Set(points.map(p => p.category))];
-    const chipsEl = document.getElementById('categoryChips');
-    const resultsList = document.getElementById('resultsList');
-    const stats = document.getElementById('stats');
-    const searchInput = document.getElementById('searchInput');
-
-    categories.forEach(category => {
-      const chip = document.createElement('button');
-      chip.className = 'chip' + (category === 'Все' ? ' active' : '');
-      chip.textContent = category;
-      chip.addEventListener('click', () => {
-        activeCategory = category;
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        render();
-      });
-      chipsEl.appendChild(chip);
-    });
-
-    function formatTooltip(item) {
-      return `<strong>${item.name}</strong><br>${item.category}${item.capital ? `<br>Центр: ${item.capital}` : ''}`;
-    }
-
     function createMarker(item) {
       const marker = L.circleMarker([item.lat, item.lng], markerStyle(item.category));
-      marker.bindTooltip(formatTooltip(item), {
-        permanent: false,
+      const tooltip = `<strong>${item.name}</strong><br>${item.category}${item.capital ? `<br>Центр: ${item.capital}` : ''}`;
+      marker.bindTooltip(tooltip, {
         direction: 'top',
         offset: [0, -8],
         className: 'custom-tooltip'
@@ -401,12 +458,50 @@
       return marker;
     }
 
+    function currentData() {
+      return datasets[activeTheme];
+    }
+
+    function buildThemeButtons() {
+      themeButtons.innerHTML = '';
+      Object.keys(datasets).forEach(theme => {
+        const btn = document.createElement('button');
+        btn.className = 'theme-btn' + (theme === activeTheme ? ' active' : '');
+        btn.textContent = theme;
+        btn.addEventListener('click', () => {
+          activeTheme = theme;
+          activeCategory = 'Все';
+          searchInput.value = '';
+          buildThemeButtons();
+          buildCategoryChips();
+          render();
+        });
+        themeButtons.appendChild(btn);
+      });
+    }
+
+    function buildCategoryChips() {
+      categoryChips.innerHTML = '';
+      const categories = ['Все', ...new Set(currentData().points.map(p => p.category))];
+      categories.forEach(category => {
+        const chip = document.createElement('button');
+        chip.className = 'chip' + (category === activeCategory ? ' active' : '');
+        chip.textContent = category;
+        chip.addEventListener('click', () => {
+          activeCategory = category;
+          buildCategoryChips();
+          renderListAndMarkers();
+        });
+        categoryChips.appendChild(chip);
+      });
+    }
+
     function filteredPoints() {
       const q = searchInput.value.trim().toLowerCase();
-      return points.filter(item => {
+      return currentData().points.filter(item => {
         const categoryMatch = activeCategory === 'Все' || item.category === activeCategory;
-        const queryText = `${item.name} ${item.category} ${item.description || ''} ${item.capital || ''}`.toLowerCase();
-        const searchMatch = !q || queryText.includes(q);
+        const haystack = `${item.name} ${item.category} ${item.description || ''} ${item.capital || ''}`.toLowerCase();
+        const searchMatch = !q || haystack.includes(q);
         return categoryMatch && searchMatch;
       });
     }
@@ -416,7 +511,7 @@
       if (!items.length) {
         const empty = document.createElement('div');
         empty.className = 'item';
-        empty.innerHTML = `<div class="item-title">Ничего не найдено</div><div class="item-meta">Попробуй другой запрос или сбрось фильтр.</div>`;
+        empty.innerHTML = '<div class="item-title">Ничего не найдено</div><div class="item-meta">Сбрось фильтр или измени поисковый запрос.</div>';
         resultsList.appendChild(empty);
         return;
       }
@@ -437,16 +532,37 @@
 
     function renderMarkers(items) {
       markerLayer.clearLayers();
-      items.forEach(item => markerLayer.addLayer(createMarker(item)));
+      const bounds = [];
+      items.forEach(item => {
+        markerLayer.addLayer(createMarker(item));
+        bounds.push([item.lat, item.lng]);
+      });
+      if (bounds.length) {
+        map.fitBounds(bounds, { padding: [30, 30], maxZoom: currentData().zoom + 1 });
+      } else {
+        map.setView(currentData().center, currentData().zoom);
+      }
     }
 
-    function render() {
+    function renderListAndMarkers() {
       const items = filteredPoints();
       renderList(items);
       renderMarkers(items);
-      stats.textContent = `Показано объектов: ${items.length} из ${points.length}`;
+      stats.textContent = `Тема: ${activeTheme} • показано объектов: ${items.length} из ${currentData().points.length}`;
     }
 
+    function render() {
+      const data = currentData();
+      overlayTitle.textContent = activeTheme;
+      overlayText.textContent = data.description + ' Координаты нанесены ориентировочно для учебной визуализации.';
+      map.setView(data.center, data.zoom);
+      renderListAndMarkers();
+    }
+
+    searchInput.addEventListener('input', renderListAndMarkers);
+
+    buildThemeButtons();
+    buildCategoryChips();
     render();
   </script>
 </body>
