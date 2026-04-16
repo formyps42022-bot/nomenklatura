@@ -221,6 +221,25 @@
       color: var(--muted);
     }
 
+    .mobile-toggle {
+      display: none;
+      margin: 12px 12px 0;
+      border: 0;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: .95rem;
+      font-weight: 600;
+      text-align: left;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 8px 20px rgba(37,99,235,.18);
+      cursor: pointer;
+    }
+
+    .mobile-panel {
+      display: contents;
+    }
+
     .leaflet-tooltip.custom-tooltip {
       background: rgba(15,23,42,.94);
       color: #fff;
@@ -333,6 +352,18 @@
         border-radius: 22px;
       }
 
+      .mobile-toggle {
+        display: block;
+      }
+
+      .mobile-panel {
+        display: block;
+      }
+
+      .mobile-panel.is-collapsed {
+        display: none;
+      }
+
       .sidebar-header {
         padding: 14px 14px 10px;
       }
@@ -382,6 +413,8 @@
         <p class="subtitle">Выбери тему кнопкой, ищи объекты по названию и наводи на точки на карте, чтобы увидеть подписи.</p>
       </div>
 
+      <button class="mobile-toggle" id="mobileToggle" aria-expanded="true" aria-controls="mobilePanel">☰ Показать / скрыть меню</button>
+      <div class="mobile-panel" id="mobilePanel">
       <div class="controls">
         <div>
           <div style="font-size:.86rem;color:var(--muted);margin-bottom:8px;">Тема номенклатуры</div>
@@ -398,6 +431,7 @@
       </div>
 
       <div class="list" id="resultsList"></div>
+      </div>
     </aside>
 
     <main class="map-wrap">
@@ -693,6 +727,25 @@
     }
 
     searchInput.addEventListener('input', renderListAndMarkers);
+
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobilePanel = document.getElementById('mobilePanel');
+
+    function syncMobilePanel() {
+      if (window.innerWidth > 560) {
+        mobilePanel.classList.remove('is-collapsed');
+        mobileToggle.setAttribute('aria-expanded', 'true');
+        mobileToggle.textContent = '☰ Показать / скрыть меню';
+      }
+    }
+
+    mobileToggle.addEventListener('click', () => {
+      const isCollapsed = mobilePanel.classList.toggle('is-collapsed');
+      mobileToggle.setAttribute('aria-expanded', String(!isCollapsed));
+      mobileToggle.textContent = isCollapsed ? '☰ Открыть меню' : '✕ Скрыть меню';
+    });
+
+    window.addEventListener('resize', syncMobilePanel);
 
     buildThemeButtons();
     buildCategoryChips();
