@@ -221,25 +221,6 @@
       color: var(--muted);
     }
 
-    .mobile-toggle {
-      display: none;
-      margin: 12px 12px 0;
-      border: 0;
-      border-radius: 16px;
-      padding: 12px 14px;
-      font-size: .95rem;
-      font-weight: 600;
-      text-align: left;
-      color: white;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: 0 8px 20px rgba(37,99,235,.18);
-      cursor: pointer;
-    }
-
-    .mobile-panel {
-      display: contents;
-    }
-
     .leaflet-tooltip.custom-tooltip {
       background: rgba(15,23,42,.94);
       color: #fff;
@@ -325,39 +306,60 @@
       }
     }
 
-    @media (max-width: 560px) {
+        @media (max-width: 560px) {
+      html, body {
+        height: 100dvh;
+        overflow: hidden;
+      }
+
       body {
         background: linear-gradient(180deg, #eaf4ff 0%, #f8fbff 100%);
       }
 
       .app {
+        height: 100dvh;
+        min-height: 100dvh;
         padding: 0;
         gap: 0;
+        overflow: hidden;
       }
 
       .map-wrap {
+        order: 1;
         border-radius: 0 0 24px 24px;
-        min-height: 52vh;
+        height: 52dvh;
+        min-height: 52dvh;
         border-left: 0;
         border-right: 0;
+        flex: 0 0 auto;
       }
 
       #map {
-        min-height: 52vh;
+        height: 52dvh;
+        min-height: 52dvh;
       }
 
       .sidebar {
+        order: 2;
         margin: 10px;
         margin-top: 12px;
         border-radius: 22px;
+        height: calc(48dvh - 22px);
+        min-height: 0;
+        overflow: hidden;
       }
 
       .mobile-toggle {
         display: block;
+        flex: 0 0 auto;
       }
 
       .mobile-panel {
         display: block;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       .mobile-panel.is-collapsed {
@@ -366,6 +368,7 @@
 
       .sidebar-header {
         padding: 14px 14px 10px;
+        flex: 0 0 auto;
       }
 
       .subtitle,
@@ -389,7 +392,8 @@
       }
 
       .list {
-        max-height: 34vh;
+        max-height: none;
+        overflow: visible;
         gap: 8px;
       }
 
@@ -413,8 +417,6 @@
         <p class="subtitle">Выбери тему кнопкой, ищи объекты по названию и наводи на точки на карте, чтобы увидеть подписи.</p>
       </div>
 
-      <button class="mobile-toggle" id="mobileToggle" aria-expanded="true" aria-controls="mobilePanel">☰ Показать / скрыть меню</button>
-      <div class="mobile-panel" id="mobilePanel">
       <div class="controls">
         <div>
           <div style="font-size:.86rem;color:var(--muted);margin-bottom:8px;">Тема номенклатуры</div>
@@ -431,7 +433,6 @@
       </div>
 
       <div class="list" id="resultsList"></div>
-      </div>
     </aside>
 
     <main class="map-wrap">
@@ -581,10 +582,12 @@
       'Административные центры': '#ec4899'
     };
 
-    const map = L.map('map', { zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap'
+    const map = L.map('map', { zoomControl: true, attributionControl: true });
+    map.attributionControl.setPrefix('');
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 20,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
     }).addTo(map);
 
     const markerLayer = L.layerGroup().addTo(map);
@@ -727,25 +730,6 @@
     }
 
     searchInput.addEventListener('input', renderListAndMarkers);
-
-    const mobileToggle = document.getElementById('mobileToggle');
-    const mobilePanel = document.getElementById('mobilePanel');
-
-    function syncMobilePanel() {
-      if (window.innerWidth > 560) {
-        mobilePanel.classList.remove('is-collapsed');
-        mobileToggle.setAttribute('aria-expanded', 'true');
-        mobileToggle.textContent = '☰ Показать / скрыть меню';
-      }
-    }
-
-    mobileToggle.addEventListener('click', () => {
-      const isCollapsed = mobilePanel.classList.toggle('is-collapsed');
-      mobileToggle.setAttribute('aria-expanded', String(!isCollapsed));
-      mobileToggle.textContent = isCollapsed ? '☰ Открыть меню' : '✕ Скрыть меню';
-    });
-
-    window.addEventListener('resize', syncMobilePanel);
 
     buildThemeButtons();
     buildCategoryChips();
