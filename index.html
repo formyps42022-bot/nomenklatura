@@ -24,10 +24,14 @@
 
     * { box-sizing: border-box; }
 
-    html, body { height: 100%; }
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
 
     body {
       margin: 0;
+      overflow: hidden;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       background:
@@ -40,8 +44,11 @@
       display: grid;
       grid-template-columns: 390px 1fr;
       gap: 16px;
-      min-height: 100vh;
+      height: 100dvh;
+      min-height: 100dvh;
       padding: 16px;
+      overflow: hidden;
+      align-items: stretch;
     }
 
     .sidebar {
@@ -51,14 +58,20 @@
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      min-height: 0;
+      height: calc(100dvh - 32px);
       backdrop-filter: blur(10px);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     }
 
     .sidebar-header {
       padding: 22px 20px 14px;
       background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(139,92,246,.08));
       border-bottom: 1px solid rgba(15,23,42,.06);
+      flex: 0 0 auto;
     }
 
     h1 {
@@ -80,6 +93,7 @@
       gap: 12px;
       background: var(--panel-2);
       border-bottom: 1px solid rgba(15,23,42,.06);
+      flex: 0 0 auto;
     }
 
     .theme-buttons,
@@ -147,9 +161,10 @@
 
     .list {
       padding: 12px;
-      overflow: auto;
+      overflow: visible;
       display: grid;
       gap: 10px;
+      flex: 0 0 auto;
     }
 
     .item {
@@ -182,7 +197,8 @@
 
     .map-wrap {
       position: relative;
-      min-height: calc(100vh - 32px);
+      min-height: 0;
+      height: calc(100dvh - 32px);
       border-radius: 28px;
       overflow: hidden;
       box-shadow: var(--shadow);
@@ -191,8 +207,8 @@
 
     #map {
       width: 100%;
-      min-height: calc(100vh - 32px);
       height: 100%;
+      min-height: 0;
     }
 
     .map-overlay {
@@ -238,11 +254,14 @@
         grid-template-columns: 1fr;
         padding: 10px;
         gap: 10px;
+        height: 100dvh;
+        min-height: 100dvh;
       }
 
       .sidebar {
         order: 2;
-        min-height: auto;
+        min-height: 0;
+        height: 40dvh;
         border-radius: 22px;
       }
 
@@ -279,7 +298,6 @@
       }
 
       .list {
-        max-height: 38vh;
         padding: 10px;
       }
 
@@ -289,12 +307,14 @@
 
       .map-wrap {
         order: 1;
-        min-height: 58vh;
+        height: calc(60dvh - 10px);
+        min-height: calc(60dvh - 10px);
         border-radius: 22px;
       }
 
       #map {
-        min-height: 58vh;
+        height: 100%;
+        min-height: 0;
       }
 
       .map-overlay {
@@ -322,6 +342,7 @@
         padding: 0;
         gap: 0;
         overflow: hidden;
+        grid-template-columns: 1fr;
       }
 
       .map-wrap {
@@ -331,12 +352,11 @@
         min-height: 52dvh;
         border-left: 0;
         border-right: 0;
-        flex: 0 0 auto;
       }
 
       #map {
-        height: 52dvh;
-        min-height: 52dvh;
+        height: 100%;
+        min-height: 0;
       }
 
       .sidebar {
@@ -346,21 +366,49 @@
         border-radius: 22px;
         height: calc(48dvh - 22px);
         min-height: 0;
-        overflow: hidden;
-      }
-
-      .mobile-toggle {
-        display: block;
-        flex: 0 0 auto;
-      }
-
-      .mobile-panel {
-        display: block;
-        flex: 1 1 auto;
-        min-height: 0;
+        overflow-x: hidden;
         overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
       }
+
+      .sidebar-header {
+        padding: 14px 14px 10px;
+      }
+
+      .subtitle,
+      .stats,
+      .item-meta,
+      .map-overlay p {
+        font-size: .82rem;
+      }
+
+      .controls {
+        padding: 10px 12px;
+      }
+
+      .search-wrap input {
+        padding: 11px 12px 11px 38px;
+        border-radius: 14px;
+        font-size: 16px;
+      }
+
+      .search-icon {
+        left: 12px;
+      }
+
+      .list {
+        gap: 8px;
+      }
+
+      .item-title {
+        font-size: .93rem;
+      }
+
+      .theme-btn,
+      .chip {
+        font-size: .82rem;
+        padding: 9px 11px;
+      }
+    }
 
       .mobile-panel.is-collapsed {
         display: none;
