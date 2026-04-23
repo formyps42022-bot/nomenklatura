@@ -645,8 +645,25 @@
       };
     }
 
+    const coordinateUsage = new Map();
+
+    function getDisplayLatLng(item) {
+      const key = `${item.lat.toFixed(4)},${item.lng.toFixed(4)}`;
+      const count = coordinateUsage.get(key) || 0;
+      coordinateUsage.set(key, count + 1);
+
+      if (count === 0) return [item.lat, item.lng];
+
+      const angle = count * 0.9;
+      const radius = 0.12 + (count - 1) * 0.03;
+      const latOffset = Math.sin(angle) * radius;
+      const lngOffset = Math.cos(angle) * radius;
+      return [item.lat + latOffset, item.lng + lngOffset];
+    }
+
     function createMarker(item) {
-      const marker = L.circleMarker([item.lat, item.lng], markerStyle(item.category));
+      const displayLatLng = getDisplayLatLng(item);
+      const marker = L.circleMarker(displayLatLng, markerStyle(item.category));
       const tooltip = `<strong>${item.name}</strong><br>${item.category}${item.capital ? `<br>Центр: ${item.capital}` : ''}`;
       marker.bindTooltip(tooltip, {
         direction: 'top',
@@ -654,7 +671,7 @@
         className: 'custom-tooltip'
       });
       marker.on('click', () => {
-        map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 7), { duration: 0.6 });
+        map.flyTo(displayLatLng, Math.max(map.getZoom(), 7), { duration: 0.6 });
         marker.openTooltip();
       });
       return marker;
@@ -734,10 +751,23 @@
 
     function renderMarkers(items) {
       markerLayer.clearLayers();
+      coordinateUsage.clear();
       const bounds = [];
       items.forEach(item => {
-        markerLayer.addLayer(createMarker(item));
-        bounds.push([item.lat, item.lng]);
+        const displayLatLng = getDisplayLatLng(item);
+        const marker = L.circleMarker(displayLatLng, markerStyle(item.category));
+        const tooltip = `<strong>${item.name}</strong><br>${item.category}${item.capital ? `<br>Центр: ${item.capital}` : ''}`;
+        marker.bindTooltip(tooltip, {
+          direction: 'top',
+          offset: [0, -8],
+          className: 'custom-tooltip'
+        });
+        marker.on('click', () => {
+          map.flyTo(displayLatLng, Math.max(map.getZoom(), 7), { duration: 0.6 });
+          marker.openTooltip();
+        });
+        markerLayer.addLayer(marker);
+        bounds.push(displayLatLng);
       });
       if (bounds.length) {
         map.fitBounds(bounds, { padding: [30, 30], maxZoom: currentData().zoom + 1 });
