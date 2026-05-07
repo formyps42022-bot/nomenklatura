@@ -249,6 +249,114 @@
 
     .leaflet-tooltip.custom-tooltip:before { display: none; }
 
+    .quiz-panel {
+      margin-top: 8px;
+      padding: 14px;
+      background: linear-gradient(135deg, rgba(37,99,235,.08), rgba(139,92,246,.08));
+      border: 1px solid rgba(37,99,235,.12);
+      border-radius: 18px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .quiz-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 1px solid rgba(37,99,235,.12);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: .84rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .quiz-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .quiz-btn.primary {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 8px 20px rgba(37,99,235,.16);
+    }
+
+    .quiz-btn.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid rgba(37,99,235,.12);
+    }
+
+    .quiz-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .quiz-card {
+      background: white;
+      border-radius: 18px;
+      border: 1px solid rgba(15,23,42,.06);
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(15,23,42,.04);
+    }
+
+    .quiz-label {
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .quiz-question {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .quiz-hint {
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 1.45;
+    }
+
+    .quiz-result {
+      min-height: 24px;
+      font-size: .9rem;
+      font-weight: 600;
+    }
+
+    .quiz-result.success { color: #15803d; }
+    .quiz-result.error { color: #b91c1c; }
+
+    .quiz-score {
+      color: var(--muted);
+      font-size: .87rem;
+    }
+
+
     @media (max-width: 980px) {
       .app {
         grid-template-columns: 1fr;
@@ -392,6 +500,19 @@
         font-size: .82rem;
         padding: 9px 11px;
       }
+
+      .quiz-panel {
+        padding: 12px;
+      }
+
+      .quiz-question {
+        font-size: .98rem;
+      }
+
+      .quiz-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
     }
 
       .mobile-panel.is-collapsed {
@@ -462,6 +583,25 @@
 
         <div class="chip-row" id="categoryChips"></div>
         <div class="stats" id="stats"></div>
+
+        <section class="quiz-panel" id="quizPanel">
+          <div class="quiz-top">
+            <div class="quiz-badge">🎯 Режим викторины</div>
+            <div class="quiz-actions">
+              <button class="quiz-btn primary" id="quizStartBtn" type="button">Начать</button>
+              <button class="quiz-btn secondary" id="quizNextBtn" type="button">Следующая</button>
+              <button class="quiz-btn secondary" id="quizShowBtn" type="button">Показать ответ</button>
+            </div>
+          </div>
+
+          <div class="quiz-card">
+            <div class="quiz-label">Задание</div>
+            <div class="quiz-question" id="quizQuestion">Нажми «Начать», и сайт случайно выберет объект. Твоя задача — найти его на карте.</div>
+            <div class="quiz-hint" id="quizHint">После запуска кликни по нужной точке на карте. Сайт сразу скажет, правильно ли выбран объект.</div>
+            <div class="quiz-result" id="quizResult"></div>
+            <div class="quiz-score" id="quizScore">Пока без попыток.</div>
+          </div>
+        </section>
       </div>
 
       <div class="list" id="resultsList"></div>
@@ -630,9 +770,19 @@
     const searchInput = document.getElementById('searchInput');
     const overlayTitle = document.getElementById('overlayTitle');
     const overlayText = document.getElementById('overlayText');
+    const quizStartBtn = document.getElementById('quizStartBtn');
+    const quizNextBtn = document.getElementById('quizNextBtn');
+    const quizShowBtn = document.getElementById('quizShowBtn');
+    const quizQuestion = document.getElementById('quizQuestion');
+    const quizHint = document.getElementById('quizHint');
+    const quizResult = document.getElementById('quizResult');
+    const quizScore = document.getElementById('quizScore');
 
     let activeTheme = 'Европейский юг';
     let activeCategory = 'Все';
+    let activeQuizItem = null;
+    let quizTotal = 0;
+    let quizCorrect = 0;
 
     function markerStyle(category) {
       return {
@@ -690,10 +840,14 @@
         btn.addEventListener('click', () => {
           activeTheme = theme;
           activeCategory = 'Все';
+          activeQuizItem = null;
           searchInput.value = '';
           buildThemeButtons();
           buildCategoryChips();
           render();
+          quizQuestion.textContent = 'Тема изменена. Нажми «Начать», чтобы получить новый вопрос.';
+          quizHint.textContent = 'Можно тренироваться по всей теме или по отдельной категории.';
+          setQuizMessage('');
         });
         themeButtons.appendChild(btn);
       });
@@ -708,8 +862,12 @@
         chip.textContent = category;
         chip.addEventListener('click', () => {
           activeCategory = category;
+          activeQuizItem = null;
           buildCategoryChips();
           renderListAndMarkers();
+          quizQuestion.textContent = 'Категория изменена. Нажми «Начать», чтобы получить новый вопрос.';
+          quizHint.textContent = 'Викторина будет задавать вопросы только по текущей категории.';
+          setQuizMessage('');
         });
         categoryChips.appendChild(chip);
       });
@@ -749,7 +907,7 @@
       });
     }
 
-    function renderMarkers(items) {
+        function renderMarkers(items) {
       markerLayer.clearLayers();
       coordinateUsage.clear();
       const bounds = [];
@@ -765,6 +923,7 @@
         marker.on('click', () => {
           map.flyTo(displayLatLng, Math.max(map.getZoom(), 7), { duration: 0.6 });
           marker.openTooltip();
+          handleQuizAnswer(item, displayLatLng, marker);
         });
         markerLayer.addLayer(marker);
         bounds.push(displayLatLng);
@@ -777,6 +936,7 @@
     }
 
     function renderListAndMarkers() {
+
       const items = filteredPoints();
       renderList(items);
       renderMarkers(items);
@@ -791,7 +951,87 @@
       renderListAndMarkers();
     }
 
-    searchInput.addEventListener('input', renderListAndMarkers);
+
+    function getQuizPool() {
+      return currentData().points.filter(item => activeCategory === 'Все' || item.category === activeCategory);
+    }
+
+    function updateQuizScore() {
+      if (quizTotal === 0) {
+        quizScore.textContent = 'Пока без попыток.';
+        return;
+      }
+      const percent = Math.round((quizCorrect / quizTotal) * 100);
+      quizScore.textContent = `Правильно: ${quizCorrect} из ${quizTotal} • ${percent}%`;
+    }
+
+    function setQuizMessage(text = '', type = '') {
+      quizResult.textContent = text;
+      quizResult.className = 'quiz-result' + (type ? ` ${type}` : '');
+    }
+
+    function pickRandomQuizItem() {
+      const pool = getQuizPool();
+      if (!pool.length) {
+        activeQuizItem = null;
+        quizQuestion.textContent = 'Нет объектов для викторины при текущем фильтре.';
+        quizHint.textContent = 'Сбрось фильтр по категориям или смени тему.';
+        setQuizMessage('');
+        return;
+      }
+
+      let next = pool[Math.floor(Math.random() * pool.length)];
+      if (pool.length > 1 && activeQuizItem && next.name === activeQuizItem.name) {
+        next = pool.find(item => item.name !== activeQuizItem.name) || next;
+      }
+
+      activeQuizItem = next;
+      quizQuestion.textContent = `Найди на карте: ${next.name}`;
+      quizHint.textContent = `Тип объекта: ${next.category}. Нажми на правильную точку на карте.`;
+      setQuizMessage('');
+    }
+
+    function startQuiz() {
+      pickRandomQuizItem();
+    }
+
+    function handleQuizAnswer(clickedItem, displayLatLng, marker) {
+      if (!activeQuizItem) return;
+
+      quizTotal += 1;
+      if (clickedItem.name === activeQuizItem.name) {
+        quizCorrect += 1;
+        setQuizMessage(`Верно! Это ${clickedItem.name}.`, 'success');
+        marker.setStyle({ radius: 12, weight: 3 });
+        setTimeout(() => {
+          try { marker.setStyle(markerStyle(clickedItem.category)); } catch (e) {}
+        }, 700);
+        updateQuizScore();
+        setTimeout(() => {
+          if (activeQuizItem && clickedItem.name === activeQuizItem.name) {
+            pickRandomQuizItem();
+          }
+        }, 900);
+      } else {
+        setQuizMessage(`Пока нет. Ты выбрал(а): ${clickedItem.name}. Попробуй ещё раз.`, 'error');
+        updateQuizScore();
+      }
+    }
+
+    function showQuizAnswer() {
+      if (!activeQuizItem) {
+        startQuiz();
+        return;
+      }
+      setQuizMessage(`Ответ: ${activeQuizItem.name}. Карта перелетела к нужной точке.`, 'success');
+      map.flyTo([activeQuizItem.lat, activeQuizItem.lng], Math.max(map.getZoom(), 7), { duration: 0.8 });
+    }
+
+    quizStartBtn.addEventListener('click', startQuiz);
+    quizNextBtn.addEventListener('click', pickRandomQuizItem);
+    quizShowBtn.addEventListener('click', showQuizAnswer);
+
+        searchInput.addEventListener('input', renderListAndMarkers);
 
     buildThemeButtons();
     buildCategoryChips();
