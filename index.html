@@ -356,6 +356,32 @@
       font-size: .87rem;
     }
 
+    .version-badge {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 500;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(15,23,42,.05);
+      border-radius: 12px;
+      padding: 6px 8px;
+      box-shadow: 0 4px 12px rgba(15,23,42,.08);
+      backdrop-filter: blur(6px);
+      max-width: 210px;
+      text-align: right;
+      opacity: .78;
+    }
+
+    .version-badge-title {
+      display: none;
+    }
+
+    .version-badge-text {
+      font-size: .72rem;
+      line-height: 1.35;
+      color: rgba(15,23,42,.72);
+    }
+
 
     @media (max-width: 980px) {
       .app {
@@ -513,6 +539,19 @@
         display: grid;
         grid-template-columns: 1fr;
       }
+
+      .version-badge {
+        right: 8px;
+        bottom: 8px;
+        max-width: 170px;
+        padding: 5px 7px;
+        border-radius: 10px;
+        opacity: .72;
+      }
+
+      .version-badge-text {
+        font-size: .68rem;
+      }
     }
 
       .mobile-panel.is-collapsed {
@@ -612,6 +651,10 @@
       <div class="map-overlay">
         <h2 id="overlayTitle">Европейский юг</h2>
         <p id="overlayText">Карта показывает объекты выбранной темы. Координаты нанесены ориентировочно для учебной интерактивной визуализации.</p>
+      </div>
+      <div class="version-badge" id="versionBadge">
+        <div class="version-badge-title">Версия номенклатуры</div>
+        <div class="version-badge-text" id="versionBadgeText">v1.3 • 07.05.2026</div>
       </div>
     </main>
   </div>
@@ -777,12 +820,15 @@
     const quizHint = document.getElementById('quizHint');
     const quizResult = document.getElementById('quizResult');
     const quizScore = document.getElementById('quizScore');
+    const versionBadgeText = document.getElementById('versionBadgeText');
 
     let activeTheme = 'Европейский юг';
     let activeCategory = 'Все';
     let activeQuizItem = null;
     let quizTotal = 0;
     let quizCorrect = 0;
+    let quizQueue = [];
+    let lastQuizPoolKey = '';
 
     function markerStyle(category) {
       return {
@@ -840,14 +886,13 @@
         btn.addEventListener('click', () => {
           activeTheme = theme;
           activeCategory = 'Все';
-          activeQuizItem = null;
           searchInput.value = '';
           buildThemeButtons();
           buildCategoryChips();
           render();
+          resetQuizCycle();
           quizQuestion.textContent = 'Тема изменена. Нажми «Начать», чтобы получить новый вопрос.';
           quizHint.textContent = 'Можно тренироваться по всей теме или по отдельной категории.';
-          setQuizMessage('');
         });
         themeButtons.appendChild(btn);
       });
@@ -862,12 +907,11 @@
         chip.textContent = category;
         chip.addEventListener('click', () => {
           activeCategory = category;
-          activeQuizItem = null;
           buildCategoryChips();
           renderListAndMarkers();
+          resetQuizCycle();
           quizQuestion.textContent = 'Категория изменена. Нажми «Начать», чтобы получить новый вопрос.';
           quizHint.textContent = 'Викторина будет задавать вопросы только по текущей категории.';
-          setQuizMessage('');
         });
         categoryChips.appendChild(chip);
       });
@@ -947,6 +991,7 @@
       const data = currentData();
       overlayTitle.textContent = activeTheme;
       overlayText.textContent = data.description + ' Координаты нанесены ориентировочно для учебной визуализации.';
+      versionBadgeText.textContent = `v1.3 • 07.05.2026`;
       map.setView(data.center, data.zoom);
       renderListAndMarkers();
     }
@@ -954,6 +999,41 @@
 
     function getQuizPool() {
       return currentData().points.filter(item => activeCategory === 'Все' || item.category === activeCategory);
+    }
+
+    function getQuizPoolKey(pool) {
+      return `${activeTheme}::${activeCategory}::${pool.map(item => item.name).join('|')}`;
+    }
+
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function rebuildQuizQueue(force = false) {
+      const pool = getQuizPool();
+      const poolKey = getQuizPoolKey(pool);
+
+      if (!force && poolKey === lastQuizPoolKey && quizQueue.length) {
+        return;
+      }
+
+      const previousName = activeQuizItem ? activeQuizItem.name : null;
+      let shuffled = shuffleArray(pool);
+
+      if (previousName && shuffled.length > 1 && shuffled[0].name === previousName) {
+        const swapIndex = shuffled.findIndex(item => item.name !== previousName);
+        if (swapIndex > 0) {
+          [shuffled[0], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[0]];
+        }
+      }
+
+      quizQueue = shuffled;
+      lastQuizPoolKey = poolKey;
     }
 
     function updateQuizScore() {
@@ -974,24 +1054,46 @@
       const pool = getQuizPool();
       if (!pool.length) {
         activeQuizItem = null;
+        quizQueue = [];
+        lastQuizPoolKey = '';
         quizQuestion.textContent = 'Нет объектов для викторины при текущем фильтре.';
         quizHint.textContent = 'Сбрось фильтр по категориям или смени тему.';
         setQuizMessage('');
         return;
       }
 
-      let next = pool[Math.floor(Math.random() * pool.length)];
-      if (pool.length > 1 && activeQuizItem && next.name === activeQuizItem.name) {
-        next = pool.find(item => item.name !== activeQuizItem.name) || next;
+      rebuildQuizQueue();
+
+      if (!quizQueue.length) {
+        rebuildQuizQueue(true);
       }
 
-      activeQuizItem = next;
-      quizQuestion.textContent = `Найди на карте: ${next.name}`;
-      quizHint.textContent = `Тип объекта: ${next.category}. Нажми на правильную точку на карте.`;
+      activeQuizItem = quizQueue.shift() || null;
+
+      if (!activeQuizItem) {
+        quizQuestion.textContent = 'Не удалось выбрать объект для викторины.';
+        quizHint.textContent = 'Попробуй ещё раз.';
+        setQuizMessage('');
+        return;
+      }
+
+      const leftCount = quizQueue.length;
+      quizQuestion.textContent = `Найди на карте: ${activeQuizItem.name}`;
+      quizHint.textContent = `Тип объекта: ${activeQuizItem.category}. Нажми на правильную точку на карте. Осталось до нового круга: ${leftCount}.`;
+      setQuizMessage('');
+    }
+
+    function resetQuizCycle() {
+      activeQuizItem = null;
+      quizQueue = [];
+      lastQuizPoolKey = '';
+      quizQuestion.textContent = 'Нажми «Начать», и сайт случайно выберет объект. Твоя задача — найти его на карте.';
+      quizHint.textContent = 'После запуска кликни по нужной точке на карте. Сайт сразу скажет, правильно ли выбран объект.';
       setQuizMessage('');
     }
 
     function startQuiz() {
+      rebuildQuizQueue(true);
       pickRandomQuizItem();
     }
 
@@ -1031,7 +1133,12 @@
     quizNextBtn.addEventListener('click', pickRandomQuizItem);
     quizShowBtn.addEventListener('click', showQuizAnswer);
 
-        searchInput.addEventListener('input', renderListAndMarkers);
+        searchInput.addEventListener('input', () => {
+      renderListAndMarkers();
+      resetQuizCycle();
+      quizQuestion.textContent = 'Поиск изменён. Нажми «Начать», чтобы получить новый вопрос.';
+      quizHint.textContent = 'Для честной викторины вопросы обновлены под текущий список объектов.';
+    });
 
     buildThemeButtons();
     buildCategoryChips();
